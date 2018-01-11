@@ -1,44 +1,39 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package es.victormanuelruizgarrido.pongfx;
 
+package es.victormanuelruizgarrido.pongfx;
+/*Justo aqui se iran introduciendo todas las importaciones necesaria de nuestra 
+aplicacion. Si clickeamos en segundo boton y despues Fix Import se borraran las
+importaciones que no estamos utilizando y tambien añadir la que necesitamos 
+añadir*/
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
-/**
- *
- * @author 1DAW02
- */
+
 public class Main extends Application {
     
     @Override
-    public void start(Stage primaryStage) {
-        Button btn = new Button();
-        btn.setText("Que dia es hoy?'");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Mira el calendario pisha!");
-            }
-        });
-        
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
-        
-        Scene scene = new Scene(root, 300, 250);
-        
-        primaryStage.setTitle("Hello World!");
+    public void start(Stage primaryStage) {     
+        Pane root = new Pane();
+        /*Podemos identificar los parametros de la pantalla del tiron si tener 
+        que ir objeto por objeto Scene scene = new Scene(root,600,400,
+        Color.AQUA; )*/
+        Scene scene = new Scene(root, 600, 400);
+        primaryStage.setTitle("PongVictorManuelRuizGarrido!");
         primaryStage.setScene(scene);
         primaryStage.show();
+        scene.setFill(Color.AQUA);
+        /*Se pueden asignar los valores de la bola directamente. Circle 
+        circleBall = new Circle(10,30,7, Color.BLUE);*/
+        Circle circleBall = new Circle();
+        circleBall.setCenterX(10);
+        circleBall.setCenterY(30);
+        circleBall.setRadius(7);
+        circleBall.setFill(Color.BLUE);
+        root.getChildren().add(circleBall);
+        
     }
 
     /**
