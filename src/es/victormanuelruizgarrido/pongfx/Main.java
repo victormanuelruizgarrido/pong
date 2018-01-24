@@ -5,6 +5,7 @@ aplicacion. Si clickeamos en segundo boton y despues Fix Import se borraran las
 importaciones que no estamos utilizando y tambien añadir la que necesitamos 
 añadir*/
 
+import java.util.Random;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -38,10 +39,13 @@ public class Main extends Application {
     final int TEXT_SIZE = 24;
     int score;
     int hightScore;
+    Text textScore;
+    Pane root;
+    
     
     @Override
     public void start(Stage primaryStage) {     
-        Pane root = new Pane();
+        root = new Pane();
         /*Podemos identificar los parametros de la pantalla del tiron si tener 
         que ir objeto por objeto Scene scene = new Scene(root,600,400,
         Color.AQUA; )*/
@@ -51,26 +55,20 @@ public class Main extends Application {
         primaryStage.show();
         /*Se pueden asignar los valores de la bola directamente. Circle 
         circleBall = new Circle(10,30,7, Color.BLUE);*/
-        Rectangle rectanguloEsquinas = new Rectangle(SCENE_MEDIDA_X*0.9,barraPosicionY,STICK_GROSOR,STICK_LARGO);
-        rectanguloEsquinas.setFill(Color.BLUE);
-        rectanguloEsquinas.setArcWidth(10);
-        rectanguloEsquinas.setArcHeight(10);
+        Rectangle stick = new Rectangle(SCENE_MEDIDA_X*0.9,barraPosicionY,STICK_GROSOR,STICK_LARGO);
+        stick.setFill(Color.BLUE);
+        stick.setArcWidth(10);
+        stick.setArcHeight(10);
         
         Rectangle rectanguloEsquinas2 = new Rectangle(SCENE_MEDIDA_X*0.1,barraPosicionY,STICK_GROSOR,STICK_LARGO);
         rectanguloEsquinas2.setFill(Color.BLUE);
         rectanguloEsquinas2.setArcWidth(10);
-        rectanguloEsquinas2.setArcHeight(10);
-        for(int i=0; i<SCENE_MEDIDA_Y; i+=30){
-           Line lineaCentral = new Line(SCENE_MEDIDA_X/2,i,SCENE_MEDIDA_X/2,i+10);
-            lineaCentral.setStroke(Color.BLUE);
-            lineaCentral.setStrokeWidth(4); 
-            root.getChildren().add(lineaCentral);
-        } 
-        Circle circleBall = new Circle();
-        circleBall.setCenterX(ballCenterX);
-        circleBall.setCenterY(ballCenterY);
-        circleBall.setRadius(7);
-        circleBall.setFill(Color.BLUE);
+        rectanguloEsquinas2.setArcHeight(10); 
+        Circle ball = new Circle();
+        ball.setCenterX(ballCenterX);
+        ball.setCenterY(ballCenterY);
+        ball.setRadius(7);
+        ball.setFill(Color.BLUE);
         //Layout principal
         HBox paneScores = new HBox();
         paneScores.setTranslateY(20);
@@ -91,9 +89,9 @@ public class Main extends Application {
         textoTituloPuntuacion.setFont(Font.font(TEXT_SIZE));
         textoTituloPuntuacion.setFill(Color.BLUE);
         //Texto para puntuacion
-        Text textoPuntuacion = new Text("0");
-        textoPuntuacion.setFont(Font.font(TEXT_SIZE));
-        textoPuntuacion.setFill(Color.BLUE);
+        textScore = new Text("0");
+        textScore.setFont(Font.font(TEXT_SIZE));
+        textScore.setFill(Color.BLUE);
         //Texto de etiqueta para puntuacion
         Text textoTituloMaximaPuntuacion = new Text("Max.Score");
         textoTituloMaximaPuntuacion.setFont(Font.font(TEXT_SIZE));
@@ -104,12 +102,14 @@ public class Main extends Application {
         textoMaximaPuntuacion.setFill(Color.BLUE);
         //Añadir los textos a los layaut reservados
         paneActualScores.getChildren().add(textoTituloPuntuacion);
-        paneActualScores.getChildren().add(textoPuntuacion);
+        paneActualScores.getChildren().add(textScore);
         paneMaximaScores.getChildren().add(textoTituloMaximaPuntuacion);
         paneMaximaScores.getChildren().add(textoMaximaPuntuacion);
-        root.getChildren().add(circleBall);
-        root.getChildren().add(rectanguloEsquinas);
+        root.getChildren().add(ball);
+        root.getChildren().add(stick);
         root.getChildren().add(rectanguloEsquinas2);
+        drawNet(20,6,40);
+        resetGame();
         
         AnimationTimer animationBall = new AnimationTimer(){
             @Override
@@ -124,9 +124,9 @@ public class Main extends Application {
                         stickPosiY = SCENE_MEDIDA_Y-STICK_LARGO;
                     }
                 }
-                rectanguloEsquinas.setY(stickPosiY);
+                stick.setY(stickPosiY);
                 rectanguloEsquinas2.setY(stickPosiY);
-                circleBall.setCenterX(ballCenterX);
+                ball.setCenterX(ballCenterX);
                 ballCenterX+=ballVelocidadX;
                 if(ballCenterX>=SCENE_MEDIDA_X){
                     if(score>hightScore){
@@ -134,16 +134,13 @@ public class Main extends Application {
                         hightScore=score;
                         textoMaximaPuntuacion.setText(String.valueOf(hightScore));
                     }
-                    //Reiniciar partida
-                    score=0;
-                    textoPuntuacion.setText(String.valueOf(score));
-                    ballCenterX = 10;
-                    ballVelocidadY = 3;
+                    //Reiniciar partida 
+                    resetGame();
                 }
                 if(ballCenterX<=0){
                     ballVelocidadX=3;
                 }
-                circleBall.setCenterY(ballCenterY);
+                ball.setCenterY(ballCenterY);
                 ballCenterY+=ballVelocidadY;
                 if(ballCenterY>=400){
                     ballVelocidadY=-3;
@@ -151,27 +148,28 @@ public class Main extends Application {
                 if(ballCenterY<=0){
                     ballVelocidadY=3;
                 }
-                Shape.intersect(circleBall, rectanguloEsquinas);
-                Shape shapeColision = Shape.intersect(circleBall, rectanguloEsquinas);
+                int collisionZone = getStickCollisionZone(ball , stick);
+                Shape.intersect(ball, stick);
+                Shape shapeColision = Shape.intersect(ball, stick);
                 boolean colisionVacia = shapeColision.getBoundsInLocal().isEmpty();
                 if(colisionVacia == false && ballVelocidadX > 0){
                     //Colisionj detectada
-                    ballVelocidadX=-3;
+                    calculateBallSpeed(collisionZone);
                     //Colisionj detectada
                     
                     //Icrementar puntuacion actual
                     score++;
-                    textoPuntuacion.setText(String.valueOf(score));
+                    textScore.setText(String.valueOf(score));
                 }
-                Shape.intersect(circleBall, rectanguloEsquinas2);
-                Shape shapeColision2 = Shape.intersect(circleBall, rectanguloEsquinas2);
+                Shape.intersect(ball, rectanguloEsquinas2);
+                Shape shapeColision2 = Shape.intersect(ball, rectanguloEsquinas2);
                 boolean colisionVacia2 = shapeColision2.getBoundsInLocal().isEmpty();
                 if(colisionVacia2 == false && ballVelocidadX < 0){
                     //Colisionj detectada
                     ballVelocidadX=3;
                     //Icrementar puntuacion actual
                     score++;
-                    textoPuntuacion.setText(String.valueOf(score));
+                    textScore.setText(String.valueOf(score));
                 }
             };//Cierre de handler
             
@@ -191,11 +189,69 @@ public class Main extends Application {
         });
         scene.setOnKeyReleased((KeyEvent event) -> {
             stickVelocidad = 0;
-        });
-        
-        
+        });    
     }
-
+    private void drawNet(int portionHeight, int portionWidth, int portionSpacing){
+        for(int i=0; i<SCENE_MEDIDA_Y; i+=portionSpacing){
+            Line lineaCentral = new Line(SCENE_MEDIDA_X/2,i,SCENE_MEDIDA_X/2,i+portionHeight);
+            lineaCentral.setStroke(Color.BLUE);
+            lineaCentral.setStrokeWidth(portionWidth); 
+            root.getChildren().add(lineaCentral);
+        }
+    }
+    private void calculateBallSpeed(int collisionZone){
+        switch(collisionZone){
+            case 0:
+                //No hay colision
+                break;
+            case 1:
+                //Hay colision esquina superior
+                ballVelocidadX = -3;
+                ballVelocidadY = -6;
+                break;
+            case 2:  
+                //Hay colision lado superior
+                ballVelocidadX = -3;
+                ballVelocidadY = -3;
+                break;
+            case 3:  
+                //Hay colision lado superior
+                ballVelocidadX = -3;
+                ballVelocidadY = 3;
+                break;   
+            case 4:  
+                //Hay colision lado superior
+                ballVelocidadX = -3;
+                ballVelocidadY = 6;
+                break;    
+        }
+    }
+    private int getStickCollisionZone(Circle bola, Rectangle stick){
+        if(Shape.intersect(bola, stick).getBoundsInLocal().isEmpty()){
+            return 0;
+        }else{
+            double offsetBallStick = bola.getCenterY()- stick.getY();
+            if(offsetBallStick < stick.getArcHeight()*0.1){
+                return 1;
+            }else if(offsetBallStick < stick.getArcHeight()/2){
+                return 2;
+            }else if(offsetBallStick >= stick.getArcHeight()/2&&
+                    offsetBallStick < stick.getArcHeight()*0.9){
+                return 3;
+            }else{
+                return 4;
+            }
+        }
+    }
+    private void resetGame(){
+        score = 0;
+        textScore.setText(String.valueOf(score));
+        ballCenterX = 10;
+        ballVelocidadY = 3; 
+        //Posicion inicial aleatoria para el eje y
+        Random random = new Random();
+        ballCenterY = random.nextInt(SCENE_MEDIDA_Y);
+    }
     /**
      * @param args the command line arguments
      */
